@@ -1,4 +1,4 @@
-FROM 10.5.24.29:5001/ubuntu:latest
+FROM ubuntu:5001/ubuntu:latest
 
 MAINTAINER Jon Roquelaure jonathanr@jfrog.com
 
