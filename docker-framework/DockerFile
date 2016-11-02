@@ -1,0 +1,14 @@
+FROM 10.5.24.29:5001/ubuntu:latest
+
+MAINTAINER Jon Roquelaure jonathanr@jfrog.com
+
+RUN /bin/bash -c cd ~; cd /home ; mkdir -p exec
+ADD jdk/jdk-8u111-linux-x64.tar.gz /home/exec
+RUN /bin/bash -c cd /home/exec; mv /home/exec/jdk* /home/exec/jdk8
+ENV JAVA_HOME=/home/exec/jdk8
+ADD tomcat/apache-tomcat-8.5.6.tar.gz /home/exec
+RUN /bin/bash -c cd /home/exec; mv /home/exec/apache-tomcat-8.* /home/tomcat
+ADD tomcat/server.xml /home/exec/tomcat/conf
+ENV CATALINA_HOME=/home/exec/tomcat
+
+CMD /bin/bash -c cd /home/exec; /home/exec/tomcat/bin/catalina.sh run

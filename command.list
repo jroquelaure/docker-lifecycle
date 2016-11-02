@@ -1,0 +1,10 @@
+docker build -t 10.5.24.29:5001/docker-framework:1 .
+docker push 10.5.24.29:5001/docker-framework:1
+#set tag to latest with promotion
+curl -uabitbol -X POST "http://ubuntu:8081/artifactory/api/docker/docker-dev-local/v2/promote" -H "Content-Type: application/json" -T retag1.json
+
+docker build -t framework-test .
+curl -uabitbol -X POST "http://ubuntu:5001/artifactory/api/docker/docker-dev-local/v2/promote" -H "Content-Type: application/json" -T promote.json
+
+docker build -t 10.5.24.29:5001/docker-app:1 .
+curl -uabitbol -X POST "https://ubuntu:5001/artifactory/jfrogtraining/api/docker/docker-prod-local/v2/promote" -H "Content-Type: application/json" -T retag1.json
