@@ -1,7 +1,8 @@
-FROM 10.5.24.29:5001/docker-framework:latest
+FROM ubuntu:5001/docker-framework:latest
 
 MAINTAINER Jon Roquelaure jonathanr@jfrog.com
 
-ADD war/*.war /home/exec/tomcat/webapps/swampup.war
+COPY ui/frogsui /home/exec/frogsui/
+ADD jar/*.jar /home/exec/frogsws.jar
 
-CMD /bin/bash -c cd /home/exec; /home/exec/tomcat/bin/catalina.sh run
+CMD java -jar /home/exec/frogsws.jar
