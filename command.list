@@ -1,10 +1,17 @@
 docker build -t ubuntu:5001/docker-framework:1 .
 docker push ubuntu:5001/docker-framework:1
+
 #set tag to latest with promotion
 curl -uabitbol -X POST "http://ubuntu:8081/artifactory/api/docker/docker-dev-local/v2/promote" -H "Content-Type: application/json" -T retag1.json
 
-docker build -t framework-test .
+#test with run and connect to localhost:8000 you should see nginx
+docker run -it --name framework-test -p 8000:80 ubuntu:5001/docker-framework:latest
+
+#promote to prod
 curl -uabitbol -X POST "http://ubuntu:5001/artifactory/api/docker/docker-dev-local/v2/promote" -H "Content-Type: application/json" -T promote.json
 
 docker build -t ubuntu:5001/docker-app:1 .
+
+docker push ubuntu:5001/docker-app:1
+
 curl -uabitbol -X POST "https://ubuntu:5001/artifactory/jfrogtraining/api/docker/docker-prod-local/v2/promote" -H "Content-Type: application/json" -T retag1.json

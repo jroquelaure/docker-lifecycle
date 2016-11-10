@@ -8,4 +8,4 @@ RUN /bin/bash -c cd /home/exec; mv /home/exec/jdk* /home/exec/jdk8
 ENV JAVA_HOME=/home/exec/jdk8
 ENV PATH=$PATH:/home/exec/jdk8/bin
 
-CMD service nginx  start && /bin/bash
+CMD service nginx start && /bin/bash

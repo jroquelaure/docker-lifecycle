@@ -1,4 +1,4 @@
-FROM framework:latest
+FROM ubuntu:5002/docker-framework:latest
 
 MAINTAINER Jon Roquelaure jonathanr@jfrog.com
 
