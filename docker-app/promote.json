@@ -1,0 +1,4 @@
+{
+    "targetRepo":"docker-prod-local",
+    "dockerRepository":"docker-app"
+}

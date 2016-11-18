@@ -1,7 +1,13 @@
-FROM 10.5.24.29:5001/docker-framework:latest
+FROM ubuntu:5002/docker-framework:latest
 
 MAINTAINER Jon Roquelaure jonathanr@jfrog.com
 
-ADD war/*.war /home/exec/tomcat/webapps/swampup.war
+COPY ui/frogsui /usr/share/nginx/html/
 
-CMD /bin/bash -c cd /home/exec; /home/exec/tomcat/bin/catalina.sh run
+RUN sed -i "s+http://localhost:9000/+/ws/+g" /usr/share/nginx/html/frogsui/app/app.js
+ADD jar/*.jar /ws/frogsws.jar
+COPY conf/ws.conf /etc/nginx/conf.d/ws.conf
+
+
+EXPOSE 8000 9000
+CMD service nginx restart && java -jar /ws/frogsws.jar && /bin/bash

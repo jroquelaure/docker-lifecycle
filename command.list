@@ -1,17 +1,31 @@
+#step 1 build fmk
 docker build -t ubuntu:5001/docker-framework:1 .
+
+#step 2 push to dev
 docker push ubuntu:5001/docker-framework:1
 
-#set tag to latest with promotion
-curl -uabitbol -X POST "http://ubuntu:8081/artifactory/api/docker/docker-dev-local/v2/promote" -H "Content-Type: application/json" -T retag1.json
+#step 2 bis set tag to latest with promotion
+curl -uadmin -X POST "http://ubuntu:8081/artifactory/api/docker/docker-dev-local/v2/promote" -H "Content-Type: application/json" -T retag1.json
 
-#test with run and connect to localhost:8000 you should see nginx
+#step 3 test with run and connect to localhost:8000 you should see nginx
 docker run -it --name framework-test -p 8000:80 ubuntu:5001/docker-framework:latest
 
-#promote to prod
-curl -uabitbol -X POST "http://ubuntu:5001/artifactory/api/docker/docker-dev-local/v2/promote" -H "Content-Type: application/json" -T promote.json
+#step 3 bis : the full test  go into fmk test, build, run go to http://localhost:8000/frogsui/app/index.html
+docker build -t fmktest .
+docker run -it --name frameworktest -p 8000:8000 -p 9000:9000 fmktest
 
+#step 4 promote to prod
+curl -uadmin -X POST "http://ubuntu:5001/artifactory/api/docker/docker-dev-local/v2/promote" -H "Content-Type: application/json" -T promote.json
+
+# build the app 
+#step 1 : build
 docker build -t ubuntu:5001/docker-app:1 .
 
+#step 2 : push
 docker push ubuntu:5001/docker-app:1
 
-curl -uabitbol -X POST "https://ubuntu:5001/artifactory/jfrogtraining/api/docker/docker-prod-local/v2/promote" -H "Content-Type: application/json" -T retag1.json
+#step 3 : test it 
+docker run -it --name frameworktest -p 8000:8000 -p 9000:9000 ubuntu:5001/docker-app:1
+
+#step 4 : promote
+curl -uadmin -X POST "https://ubuntu:5001/artifactory/jfrogtraining/api/docker/docker-prod-local/v2/promote" -H "Content-Type: application/json" -T retag1.json
