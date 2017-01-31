@@ -1,0 +1,45 @@
+node() {
+    stage 'Build base image'
+        git url: 'https://github.com/jroquelaure/docker-lifecycle.git', branch: 'master'
+        def server = Artifactory.server('ubuntu')
+        def downloadSpec = """{
+            "files": [
+            {
+                "pattern": "generic-local/jdk*.tar.gz",
+                "target": "docker-framework/jdk/"
+            }
+        ]
+        }"""
+        def buildInfo = server.download(downloadSpec)
+        docker.build("docker-dev.ubuntu/docker-framework:$buildInfo.number", "-f docker-framework/DockerFile ./docker-framework/") 
+       
+    stage "Push built image"
+        def artDocker= Artifactory.docker('jenkins', 'AP6Vn8ZMAPQHKAnLWeEGPYwhcd')
+        def dockerInfo = artDocker.push("docker-dev.ubuntu/docker-framework:$buildInfo.number", 'docker-dev-local')
+        buildInfo.append(dockerInfo)
+        server.publishBuildInfo(buildInfo)
+    
+    stage "Test image"    
+        //TODO
+    
+    stage "Promote build"
+        def promotionConfig = [
+        // Mandatory parameters
+        'buildName'          : buildInfo.name,
+        'buildNumber'        : buildInfo.number,
+        'targetRepo'         : 'docker-prod-local2',
+
+        // Optional parameters
+        'comment'            : 'ready for release',
+        'sourceRepo'         : 'docker-dev-local',
+        'status'             : 'Released',
+        'includeDependencies': false,
+        'copy'               : true
+    ]
+
+    // Promote build
+    server.promote promotionConfig
+    
+    sh("""curl -ujenkins:AP6Vn8ZMAPQHKAnLWeEGPYwhcd http://ubuntu:8081/artifactory/api/docker/docker-prod-local2/v2/promote -H "Content-Type:application/json" -d '{"targetRepo" : "docker-prod-local2", "dockerRepository" : "docker-framework", "tag" : "$buildInfo.number", "targetTag" : "latest", "copy": true }' """)
+    
+}
