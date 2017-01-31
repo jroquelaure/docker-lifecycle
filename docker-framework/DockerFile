@@ -1,4 +1,4 @@
-FROM docker-dev.yodafrog.sas.jfrog.internal/nginx:latest
+FROM yodafrog.sas.jfrog.internal:5001/nginx:latest
 
 MAINTAINER Jon Roquelaure jonathanr@jfrog.com
 

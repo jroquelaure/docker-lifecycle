@@ -11,11 +11,11 @@ node() {
         ]
         }"""
         def buildInfo = server.download(downloadSpec)
-        docker.build("docker-dev.yodafrog.sas.jfrog.internal/docker-framework:$buildInfo.number", "-f docker-framework/DockerFile ./docker-framework/") 
+        docker.build("yodafrog.sas.jfrog.internal:5001/docker-framework:$buildInfo.number", "-f docker-framework/DockerFile ./docker-framework/") 
        
     stage "Push built image"
         def artDocker= Artifactory.docker('jenkins', 'AKCp2VouvByHfvNzqdwsgqKU7o9HneAXZwjWaHAgm9YCemnWXgu23GMR9JjnTtCu7Rue8PmTw')
-        def dockerInfo = artDocker.push("docker-dev.yodafrog.sas.jfrog.internal/docker-framework:$buildInfo.number", 'docker-dev-local')
+        def dockerInfo = artDocker.push("yodafrog.sas.jfrog.internal:5001/docker-framework:$buildInfo.number", 'docker-dev-local')
         buildInfo.append(dockerInfo)
         server.publishBuildInfo(buildInfo)
     
