@@ -1,7 +1,7 @@
 node() {
     stage 'Build base image'
         git url: 'https://github.com/jroquelaure/docker-lifecycle.git', branch: 'master'
-        def server = Artifactory.server('ubuntu')
+        def server = Artifactory.server('yodafrog')
         def downloadSpec = """{
             "files": [
             {
