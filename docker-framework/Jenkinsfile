@@ -6,7 +6,8 @@ node() {
             "files": [
             {
                 "pattern": "generic-local/*jdk*.tar.gz",
-                "target": "docker-framework/jdk/"
+                "target": "docker-framework/jdk/",
+                "flat": "true"
             }
         ]
         }"""
