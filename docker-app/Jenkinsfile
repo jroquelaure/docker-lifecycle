@@ -1,0 +1,65 @@
+node() {
+    stage 'Configure Artifactory server'
+        git url: 'https://github.com/jroquelaure/docker-lifecycle.git', branch: 'master'
+        def server = Artifactory.server('yodafrog')
+        def username = "jenkins"
+        def password = "AKCp2VouvByHfvNzqdwsgqKU7o9HneAXZwjWaHAgm9YCemnWXgu23GMR9JjnTtCu7Rue8PmTw"
+        def authUrl = "$server.url/api/npm/auth"
+        def bowerUrl = "$server.url/api/bower/bower-dev"
+        def npmUrl = "$server.url/api/npm/npm-prod"
+        
+        def curlstr="curl -H 'X-JFrog-Art-Api:"+password+"' '$server.url"
+        def jarverstr = curlstr+ "/api/search/latestVersion?g=com.jfrog&a=frogsws&repos=libs-release-local2'"
+        
+        sh jarverstr +' > docker-app/jar/version.txt'
+        sh 'cat docker-app/jar/version.txt'
+        env.JARVER=readFile('docker-app/jar/version.txt')
+        
+        def downloadSpec = """{
+            "files": [
+            {
+                "pattern": "libs-release-local2/com/jfrog/frogsws/$env.JARVER/frogsws-$env.JARVER*.jar",
+                "target": "docker-app/jar/frogsws.jar",
+                "flat":"true"
+            },
+            {
+                "pattern": "generic-local/frogsui.zip",
+                "target": "docker-app/ui/"
+            }
+        ]
+        }"""
+       
+        def buildInfo = server.download(downloadSpec)
+        
+        docker.build("yodafrog.sas.jfrog.internal:5001/docker-app:$buildInfo.number", "-f docker-app/Dockerfile ./docker-app/") 
+       
+    stage "Push built image"
+        def artDocker= Artifactory.docker('jenkins', 'AKCp2VouvByHfvNzqdwsgqKU7o9HneAXZwjWaHAgm9YCemnWXgu23GMR9JjnTtCu7Rue8PmTw')
+        def dockerInfo = artDocker.push("yodafrog.sas.jfrog.internal:5001/docker-app:$buildInfo.number", 'docker-dev-local')
+        buildInfo.append(dockerInfo)
+        server.publishBuildInfo(buildInfo)
+    
+    stage "Test image"    
+        //TODO
+    
+    stage "Promote build"
+        def promotionConfig = [
+        // Mandatory parameters
+        'buildName'          : buildInfo.name,
+        'buildNumber'        : buildInfo.number,
+        'targetRepo'         : 'docker-prod-local',
+
+        // Optional parameters
+        'comment'            : 'ready for prod',
+        'sourceRepo'         : 'docker-dev-local',
+        'status'             : 'Released',
+        'includeDependencies': false,
+        'copy'               : true
+    ]
+    
+    // Promote build
+    server.promote promotionConfig
+    
+    sh("""curl -H 'X-JFrog-Art-Api:AKCp2VouvByHfvNzqdwsgqKU7o9HneAXZwjWaHAgm9YCemnWXgu23GMR9JjnTtCu7Rue8PmTw' http://ubuntu:8081/artifactory/api/docker/docker-prod-local/v2/promote -H "Content-Type:application/json" -d '{"targetRepo" : "docker-prod-local", "dockerRepository" : "docker-app", "tag" : "$buildInfo.number", "targetTag" : "latest", "copy": true }' """)
+    
+}
