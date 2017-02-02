@@ -74,6 +74,8 @@ node() {
             'includeDependencies': false,
             'copy'               : true
         ]
+
+        server.promote promotionConfig
     }
 
 }
