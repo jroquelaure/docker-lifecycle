@@ -20,6 +20,22 @@ node() {
         buildInfo.append(dockerInfo)
         server.publishBuildInfo(buildInfo)
     
+    stage "Xray scan"
+        def xrayConfig = [
+        //Mandatory parameters
+        'buildName'         : buildInfo.name,
+        'buildNumber'       : buildInfo.number,
+
+        //Optional
+        'failBuild'        :true //Default
+        ]
+
+    // Scan xray build
+    def xrayResults = server.xrayScan xrayConfig
+    // Print full report from xray
+    echo xrayResults as String
+
+
     stage "Test image"    
         //TODO
     
