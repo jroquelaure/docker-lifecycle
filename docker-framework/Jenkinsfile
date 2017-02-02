@@ -59,7 +59,7 @@ node() {
         
         sh("""curl -H 'X-JFrog-Art-Api:AKCp2VouvByHfvNzqdwsgqKU7o9HneAXZwjWaHAgm9YCemnWXgu23GMR9JjnTtCu7Rue8PmTw' http://yodafrog.sas.jfrog.internal/artifactory/api/docker/docker-prod-local2/v2/promote -H "Content-Type:application/json" -d '{"targetRepo" : "docker-prod-local2", "dockerRepository" : "docker-framework", "tag" : "$buildInfo.number", "targetTag" : "latest", "copy": true }' """)
     }
-    else if (currentBuild.result == "FAILED") {
+    else {
          stage "Promote build"
             def promotionConfig = [
             // Mandatory parameters
