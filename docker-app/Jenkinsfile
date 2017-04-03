@@ -1,9 +1,10 @@
 node() {
-    stage 'Configure Artifactory server'
+    stage 'Build docker image'
+        deleteDir()
         git url: 'https://github.com/jroquelaure/docker-lifecycle.git', branch: 'master'
-        def server = Artifactory.server('yodafrog')
-        def username = "jenkins"
-        def password = "AKCp2VouvByHfvNzqdwsgqKU7o9HneAXZwjWaHAgm9YCemnWXgu23GMR9JjnTtCu7Rue8PmTw"
+         def server = Artifactory.server(params.artifactoryInstance)
+        params.artifactoryUserName
+        def password = params.apiKey
         def authUrl = "$server.url/api/npm/auth"
         def bowerUrl = "$server.url/api/bower/bower-dev"
         def npmUrl = "$server.url/api/npm/npm-prod"
@@ -15,6 +16,12 @@ node() {
         sh 'cat docker-app/jar/version.txt'
         env.JARVER=readFile('docker-app/jar/version.txt')
         
+        sh "mkdir -p docker-app/ui"
+        def jsverstr = curlstr + "/api/search/latestVersion?g=org.jfrog&a=frogsui&repos=npm-release-local'"
+        sh jsverstr  +' > docker-app/ui/version.txt'
+        sh 'cat docker-app/ui/version.txt'
+        env.JSVER=readFile('docker-app/ui/version.txt')
+        
         def downloadSpec = """{
             "files": [
             {
@@ -22,21 +29,28 @@ node() {
                 "target": "docker-app/jar/frogsws.jar",
                 "flat":"true"
             },
-            {
-                "pattern": "generic-local/frogsui.zip",
-                "target": "docker-app/ui/"
+             {
+                "pattern": "npm-release-local/org/jfrog/frogsui/frogsui-$env.JSVER*.tgz",
+                "target": "docker-app/ui/frogsui.tgz",
+                "flat":"true"
             }
         ]
         }"""
        
-        def buildInfo = server.download(downloadSpec)
+       def buildInfo = server.download(downloadSpec)
         
-        docker.build("yodafrog.sas.jfrog.internal:5001/docker-app:$buildInfo.number", "-f docker-app/Dockerfile ./docker-app/") 
+        sh "tar -xvzf docker-app/ui/frogsui.tgz -C docker-app/ui/"
+        sh "mv docker-app/ui/package docker-app/ui/frogsui"
+            
+        
+        docker.build("$params.dockerDevRepo/docker-app:$buildInfo.number", "-f docker-app/Dockerfile ./docker-app/") 
        
     stage "Push built image"
-        def artDocker= Artifactory.docker('jenkins', 'AKCp2VouvByHfvNzqdwsgqKU7o9HneAXZwjWaHAgm9YCemnWXgu23GMR9JjnTtCu7Rue8PmTw')
-        def dockerInfo = artDocker.push("yodafrog.sas.jfrog.internal:5001/docker-app:$buildInfo.number", 'docker-dev-local')
+        def artDocker= Artifactory.docker("$params.artifactoryUserName", "$params.apiKey")
+        def dockerInfo = artDocker.push("$params.dockerDevRepo/docker-app:$buildInfo.number", 'docker-dev-local')
         buildInfo.append(dockerInfo)
+        buildInfo.env.capture = true
+        buildInfo.env.collect()
         server.publishBuildInfo(buildInfo)
     
     stage "Test image"    
@@ -60,6 +74,6 @@ node() {
     // Promote build
     server.promote promotionConfig
     
-    sh("""curl -H 'X-JFrog-Art-Api:AKCp2VouvByHfvNzqdwsgqKU7o9HneAXZwjWaHAgm9YCemnWXgu23GMR9JjnTtCu7Rue8PmTw' http://ubuntu:8081/artifactory/api/docker/docker-prod-local/v2/promote -H "Content-Type:application/json" -d '{"targetRepo" : "docker-prod-local", "dockerRepository" : "docker-app", "tag" : "$buildInfo.number", "targetTag" : "latest", "copy": true }' """)
+    sh("""curl -H 'X-JFrog-Art-Api:$params.apiKey' $server.url/api/docker/docker-prod-local/v2/promote -H "Content-Type:application/json" -d '{"targetRepo" : "docker-prod-local", "dockerRepository" : "docker-app", "tag" : "$buildInfo.number", "targetTag" : "latest", "copy": true }' """)
     
 }
