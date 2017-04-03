@@ -24,11 +24,13 @@ node() {
         def buildInfo = server.download(downloadSpec)
          
         def artDocker= Artifactory.docker("$params.artifactoryUserName", "$params.apiKey")
-        docker.build(params.dockerRepo + "/docker-framework:$buildInfo.number", "-f docker-framework/DockerFile ./docker-framework/") 
-       
+        docker.withRegistry("http://ubuntu:5001", "jenkinsArtif")
+        {
+            docker.build(params.dockerRepo + "/docker-framework:$buildInfo.number", "-f docker-framework/DockerFile ./docker-framework/") 
+        }
     stage "Push built image"
         
-         def dockerInfo = artDocker.push("$params.dockerRepo/docker-framework:$buildInfo.number", 'docker-dev-local')
+        def dockerInfo = artDocker.push("$params.dockerRepo/docker-framework:$buildInfo.number", 'docker-dev-local')
         buildInfo.append(dockerInfo)
         buildInfo.env.capture = true
         buildInfo.env.collect()
@@ -37,7 +39,9 @@ node() {
         sh("""curl -H 'X-JFrog-Art-Api:$params.apiKey' $server.url/api/docker/docker-dev-local/v2/promote -H "Content-Type:application/json" -d '{"targetRepo" : "docker-dev-local", "dockerRepository" : "docker-framework", "tag" : "$buildInfo.number", "targetTag" : "latest", "copy": true }' """)
     
     stage "Xray scan"
-    /*    def xrayConfig = [
+        if(params.xray)
+        {
+        def xrayConfig = [
         //Mandatory parameters
         'buildName'         : buildInfo.name,
         'buildNumber'       : buildInfo.number,
@@ -46,12 +50,12 @@ node() {
         'failBuild'        :true //Default
         ]
 
-    // Scan xray build
-    def xrayResults = server.xrayScan xrayConfig
-    // Print full report from xray
-    echo xrayResults as String
-
-    if (currentBuild.result == null) {*/
+        // Scan xray build
+        def xrayResults = server.xrayScan xrayConfig
+        // Print full report from xray
+        echo xrayResults as String
+    }
+    if (!params.xray || params.xray && currentBuild.result == null) {
         stage "Test image"    
             //TODO get latest released app js + jar
              def curlstr="curl -H 'X-JFrog-Art-Api:"+password+"' '$server.url"
@@ -110,7 +114,7 @@ node() {
         
         sh("""curl -H 'X-JFrog-Art-Api:$params.apiKey' $server.url/api/docker/docker-dev-local/v2/promote -H "Content-Type:application/json" -d '{"targetRepo" : "docker-prod-local2", "dockerRepository" : "docker-framework", "tag" : "$buildInfo.number", "targetTag" : "$buildInfo.number", "copy": true }' """)
         sh("""curl -H 'X-JFrog-Art-Api:$params.apiKey' $server.url/api/docker/docker-prod-local2/v2/promote -H "Content-Type:application/json" -d '{"targetRepo" : "docker-prod-local2", "dockerRepository" : "docker-framework", "tag" : "$buildInfo.number", "targetTag" : "latest", "copy": true }' """)
-   /* }
+    }
     else {
          stage "Reject build"
             def promotionConfig = [
@@ -128,6 +132,6 @@ node() {
         ]
 
         server.promote promotionConfig
-    }*/
+    }
 
 }
