@@ -1,4 +1,4 @@
-FROM nginx:latest
+FROM ubuntu:5001/nginx:latest
 
 MAINTAINER Jon Roquelaure jonathanr@jfrog.com
 
