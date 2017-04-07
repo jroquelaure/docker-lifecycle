@@ -24,10 +24,9 @@ node() {
         def buildInfo = server.download(downloadSpec)
          
         def artDocker= Artifactory.docker("$params.artifactoryUserName", "$params.apiKey")
-        docker.withRegistry("http://ubuntu:5001", "jenkinsArtif")
-        {
-            docker.build(params.dockerRepo + "/docker-framework:$buildInfo.number", "-f docker-framework/DockerFile ./docker-framework/") 
-        }
+     
+        docker.build(params.dockerRepo + "/docker-framework:$buildInfo.number", "-f docker-framework/DockerFile ./docker-framework/") 
+
     stage "Push built image"
         
         def dockerInfo = artDocker.push("$params.dockerRepo/docker-framework:$buildInfo.number", 'docker-dev-local')
