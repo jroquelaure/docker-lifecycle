@@ -10,7 +10,7 @@ node() {
         def bowerUrl = "$server.url/api/bower/bower-dev"
         def npmUrl = "$server.url/api/npm/npm-prod"
         sh """sed -ie 's/ubuntu:5001/$params.dockerRepo/g' docker-framework/DockerFile"""
-        sh """sed -ie 's/ubuntu:5001/$params.dockerRepo/g' docker-framework/framework-test/DockerFile"""
+        sh """sed -ie 's/ubuntu:5001/$params.dockerRepo/g' docker-framework/framework-test/Dockerfile"""
         
     stage 'Build base image'
         
