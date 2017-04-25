@@ -50,8 +50,8 @@ node() {
         def artDocker= Artifactory.docker("$params.artifactoryUserName", "$params.apiKey")
         def dockerInfo = artDocker.push("$params.dockerDevRepo/docker-app:$buildInfo.number", 'docker-dev-local')
         buildInfo.append(dockerInfo)
-        buildInfo.env.capture = true
-        buildInfo.env.collect()
+        // buildInfo.env.capture = true
+        // buildInfo.env.collect()
         server.publishBuildInfo(buildInfo)
     
     stage "Test image"    
