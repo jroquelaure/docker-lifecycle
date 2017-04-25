@@ -21,7 +21,8 @@ node() {
         sh jsverstr  +' > docker-app/ui/version.txt'
         sh 'cat docker-app/ui/version.txt'
         env.JSVER=readFile('docker-app/ui/version.txt')
-        
+        sh """sed -ie 's/ubuntu:5002/$params.dockerRepo/g' docker-framework/Dockerfile"""
+
         def downloadSpec = """{
             "files": [
             {
