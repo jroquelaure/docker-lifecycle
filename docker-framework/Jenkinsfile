@@ -33,8 +33,8 @@ node() {
         
         def dockerInfo = artDocker.push("$params.dockerRepo/docker-framework:$buildInfo.number", 'docker-dev-local')
         buildInfo.append(dockerInfo)
-        buildInfo.env.capture = true
-        buildInfo.env.collect()
+        // buildInfo.env.capture = true
+        // buildInfo.env.collect()
         server.publishBuildInfo(buildInfo)
         
         sh("""curl -H 'X-JFrog-Art-Api:$params.apiKey' $server.url/api/docker/docker-dev-local/v2/promote -H "Content-Type:application/json" -d '{"targetRepo" : "docker-dev-local", "dockerRepository" : "docker-framework", "tag" : "$buildInfo.number", "targetTag" : "latest", "copy": true }' """)
