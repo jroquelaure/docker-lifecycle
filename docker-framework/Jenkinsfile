@@ -25,6 +25,8 @@ node() {
          
         def artDocker= Artifactory.docker("$params.artifactoryUserName", "$params.apiKey")
      
+        sh """sed -ie 's/ubuntu:5001/$params.dockerRepo/g' docker-framework/DockerFile"""
+        
         docker.build(params.dockerRepo + "/docker-framework:$buildInfo.number", "-f docker-framework/DockerFile ./docker-framework/") 
 
     stage "Push built image"
