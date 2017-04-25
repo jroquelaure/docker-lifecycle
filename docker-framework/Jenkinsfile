@@ -9,7 +9,9 @@ node() {
         def authUrl = "$server.url/api/npm/auth"
         def bowerUrl = "$server.url/api/bower/bower-dev"
         def npmUrl = "$server.url/api/npm/npm-prod"
-
+        sh """sed -ie 's/ubuntu:5001/$params.dockerRepo/g' docker-framework/DockerFile"""
+        sh """sed -ie 's/ubuntu:5001/$params.dockerRepo/g' docker-framework/framework-test/DockerFile"""
+        
     stage 'Build base image'
         
         def downloadSpec = """{
@@ -24,9 +26,7 @@ node() {
         def buildInfo = server.download(downloadSpec)
          
         def artDocker= Artifactory.docker("$params.artifactoryUserName", "$params.apiKey")
-     
-        sh """sed -ie 's/ubuntu:5001/$params.dockerRepo/g' docker-framework/DockerFile"""
-        
+             
         docker.build(params.dockerRepo + "/docker-framework:$buildInfo.number", "-f docker-framework/DockerFile ./docker-framework/") 
 
     stage "Push built image"
