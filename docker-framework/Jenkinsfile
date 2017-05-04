@@ -92,10 +92,13 @@ node() {
              sh "tar -xvzf docker-framework/framework-test/ui/frogsui.tgz -C docker-framework/framework-test/ui/"
              sh "mv docker-framework/framework-test/ui/package docker-framework/framework-test/ui/frogsui"
             //build framework_test image
-             
-            docker.build("framework-test:$buildInfo.number", "-f docker-framework/framework-test/Dockerfile ./docker-framework/framework-test/") 
+                          
+            testApp = docker.build("framework-test:$buildInfo.number", "-f docker-framework/framework-test/Dockerfile ./docker-framework/framework-test/") 
             //run it
-              
+            testApp.withRun('-p 8000:8000 -p 9000:9000') { c ->
+                sleep 10
+                sh 'curl "localhost:8000/frogsui/app/index.html"'
+            }
         stage "Promote build"
             def promotionConfig = [
             // Mandatory parameters
