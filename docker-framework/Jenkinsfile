@@ -97,7 +97,7 @@ node() {
             //run it
             testApp.withRun('-p 8099:8000 -p 9000:9000') { c ->
                 sleep 10
-                sh 'curl "localhost:8000/frogsui/app/index.html"'
+                sh 'curl "localhost:8099/frogsui/app/index.html"'
             }
         stage "Promote build"
             def promotionConfig = [
