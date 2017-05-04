@@ -1,6 +1,7 @@
 node() {
     stage 'Setup Build Environment'
         deleteDir()
+        sh """docker rmi $params.dockerRepo/nginx"""
         git url: 'https://github.com/jroquelaure/docker-lifecycle.git', branch: 'master'
         def server = Artifactory.server(params.artifactoryInstance)
 
@@ -134,5 +135,6 @@ node() {
 
         server.promote promotionConfig
     }
+
 
 }
