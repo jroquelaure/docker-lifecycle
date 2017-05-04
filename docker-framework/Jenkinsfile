@@ -99,8 +99,8 @@ node() {
                 sleep 10
                 sh 'curl "localhost:8099/frogsui/app/index.html"'
             }
-            sh """docker rmi 'params.dockerRepo + /docker-framework:$buildInfo.number'"""
-            sh """docker rmi 'params.dockerRepo + /docker-framework:latest'""""
+            sh "docker rmi " + params.dockerRepo + '/docker-framework:$buildInfo.number'
+            sh "docker rmi " + params.dockerRepo + '/docker-framework:latest'
         stage "Promote build"
             def promotionConfig = [
             // Mandatory parameters
