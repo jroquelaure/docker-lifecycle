@@ -95,7 +95,7 @@ node() {
                           
             testApp = docker.build("framework-test:$buildInfo.number", "-f docker-framework/framework-test/Dockerfile ./docker-framework/framework-test/") 
             //run it
-            testApp.withRun('-p 8000:8000 -p 9000:9000') { c ->
+            testApp.withRun('-p 8099:8000 -p 9000:9000') { c ->
                 sleep 10
                 sh 'curl "localhost:8000/frogsui/app/index.html"'
             }
