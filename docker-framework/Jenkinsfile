@@ -1,7 +1,7 @@
 node() {
     stage 'Setup Build Environment'
         deleteDir()
-        sh """docker rmi $(docker images -aq)"""
+        sh "docker images -qa | xargs docker rmi -f"
         git url: 'https://github.com/jroquelaure/docker-lifecycle.git', branch: 'master'
         def server = Artifactory.server(params.artifactoryInstance)
 
